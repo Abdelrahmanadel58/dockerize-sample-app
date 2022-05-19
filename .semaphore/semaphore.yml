@@ -31,3 +31,21 @@ blocks:
             - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-nginx:latest || true'
             - 'docker build -t $DOCKER_USERNAME/dockerizing-ruby-nginx:latest --cache-from=$DOCKER_USERNAME/dockerizing-ruby-nginx:latest -f Dockerfile.nginx .'
             - 'docker push $DOCKER_USERNAME/dockerizing-ruby-nginx:latest'
+  - name: 'Block #3'
+    task:
+      secrets:
+        - name: DOCKER_PASSWORD
+        - name: DOCKER_USERNAME
+      prologue:
+        commands:
+          - 'checkout '
+          - cp env-example .env
+          - cat docker-compose.test.yml | envsubst | tee docker-compose.yml
+          - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+          - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest || true'
+          - 'docker-compose run drkiq rake db:reset'
+          - 'docker-compose run drkiq rake db:migrate'
+          - 'docker-compose run drkiq rake db:test:prepare'
+      jobs:
+        - name: 'Tests #1'
+          commands: []
