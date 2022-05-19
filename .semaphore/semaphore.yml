@@ -17,3 +17,5 @@ blocks:
             - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest || true'
             - 'docker build -t $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest --cache-from=$DOCKER_USERNAME/dockerizing-ruby-drkiq:latest -f Dockerfile.production .'
             - 'docker push $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest'
+      secrets:
+        - name: DOCKER_USERNAME
