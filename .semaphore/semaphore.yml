@@ -20,3 +20,14 @@ blocks:
       secrets:
         - name: DOCKER_PASSWORD
         - name: DOCKER_USERNAME
+  - name: 'Block #2'
+    task:
+      secrets:
+        - name: DOCKER_PASSWORD
+        - name: DOCKER_USERNAME
+      jobs:
+        - name: 'Build nginx #1'
+          commands:
+            - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-nginx:latest || true'
+            - 'docker build -t $DOCKER_USERNAME/dockerizing-ruby-nginx:latest --cache-from=$DOCKER_USERNAME/dockerizing-ruby-nginx:latest -f Dockerfile.nginx .'
+            - 'docker push $DOCKER_USERNAME/dockerizing-ruby-nginx:latest'
