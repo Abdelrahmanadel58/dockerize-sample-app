@@ -17,24 +17,18 @@ blocks:
             - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest || true'
             - 'docker build -t $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest --cache-from=$DOCKER_USERNAME/dockerizing-ruby-drkiq:latest -f Dockerfile.production .'
             - 'docker push $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest'
-      secrets:
-        - name: DOCKER_PASSWORD
-        - name: DOCKER_USERNAME
-    dependencies: []
-  - name: 'Build #3'
-    task:
-      secrets:
-        - name: DOCKER_PASSWORD
-        - name: DOCKER_USERNAME
-      jobs:
-        - name: 'Build nginx #1'
+        - name: 'Build Nginx #2'
           commands:
             - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-nginx:latest || true'
             - 'docker build -t $DOCKER_USERNAME/dockerizing-ruby-nginx:latest --cache-from=$DOCKER_USERNAME/dockerizing-ruby-nginx:latest -f Dockerfile.nginx .'
             - 'docker push $DOCKER_USERNAME/dockerizing-ruby-nginx:latest'
+      secrets:
+        - name: DOCKER_PASSWORD
+        - name: DOCKER_USERNAME
+    dependencies: []
+  - name: 'Test#2'
     dependencies:
-      - 'Block #2'
-  - name: 'Block #2'
+      - 'Build#1'
     task:
       secrets:
         - name: DOCKER_PASSWORD
@@ -50,9 +44,7 @@ blocks:
           - 'docker-compose run drkiq rake db:migrate'
           - 'docker-compose run drkiq rake db:test:prepare'
       jobs:
-        - name: 'RailsTests #1'
+        - name: 'Test #1'
           commands:
-            - 'docker-compose run drkiq rake db:test:prepare'
+            - 'docker-compose run drkiq db:test:prepare'
             - docker-compose run drkiq rails test
-    dependencies:
-      - 'Build#1'
