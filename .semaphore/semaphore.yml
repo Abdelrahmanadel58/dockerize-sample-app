@@ -5,7 +5,7 @@ agent:
     type: e1-standard-2
     os_image: ubuntu2004
 blocks:
-  - name: 'Block #1'
+  - name: 'Build#1'
     task:
       prologue:
         commands:
@@ -20,7 +20,8 @@ blocks:
       secrets:
         - name: DOCKER_PASSWORD
         - name: DOCKER_USERNAME
-  - name: 'Block #2'
+    dependencies: []
+  - name: 'Build #3'
     task:
       secrets:
         - name: DOCKER_PASSWORD
@@ -31,7 +32,9 @@ blocks:
             - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-nginx:latest || true'
             - 'docker build -t $DOCKER_USERNAME/dockerizing-ruby-nginx:latest --cache-from=$DOCKER_USERNAME/dockerizing-ruby-nginx:latest -f Dockerfile.nginx .'
             - 'docker push $DOCKER_USERNAME/dockerizing-ruby-nginx:latest'
-  - name: 'Block #3'
+    dependencies:
+      - 'Block #2'
+  - name: 'Block #2'
     task:
       secrets:
         - name: DOCKER_PASSWORD
@@ -47,5 +50,9 @@ blocks:
           - 'docker-compose run drkiq rake db:migrate'
           - 'docker-compose run drkiq rake db:test:prepare'
       jobs:
-        - name: 'Tests #1'
-          commands: []
+        - name: 'RailsTests #1'
+          commands:
+            - 'docker-compose run drkiq rake db:test:prepare'
+            - docker-compose run drkiq rails test
+    dependencies:
+      - 'Build#1'
