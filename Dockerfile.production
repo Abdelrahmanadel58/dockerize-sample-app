@@ -21,4 +21,6 @@ RUN gem install rails bundler
 RUN bundle install
 RUN yarn install
 
-CMD sudo bundle exec unicorn -c config/unicorn.rb
+RUN  useradd admin && echo "admin:admin" | chpasswd && adduser admin sudo
+USER admin
+CMD bundle exec unicorn -c config/unicorn.rb
