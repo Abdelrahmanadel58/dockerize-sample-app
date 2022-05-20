@@ -21,4 +21,4 @@ RUN gem install rails bundler
 RUN bundle install
 RUN yarn install
 
-CMD bundle exec unicorn -c config/unicorn.rb
+CMD sudo bundle exec unicorn -c config/unicorn.rb
