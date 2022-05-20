@@ -37,7 +37,7 @@ blocks:
         commands:
           - 'checkout '
           - cp env-example .env
-          - cat docker-compose.test.yml | envsubst | tee docker-compose.yml
+          - cat docker-compose.test.yml | envsubst | tee docker-compose
           - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
           - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest || true'
           - 'docker-compose run drkiq rake db:reset'
@@ -46,6 +46,5 @@ blocks:
       jobs:
         - name: 'Test #1'
           commands:
-            - docker-compose up
             - 'docker-compose run drkiq db:test:prepare'
             - docker-compose run drkiq rails test
