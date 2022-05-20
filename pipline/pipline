@@ -1,0 +1,50 @@
+version: v1.0
+name: Docker
+agent:
+  machine:
+    type: e1-standard-2
+    os_image: ubuntu2004
+blocks:
+  - name: 'Build#1'
+    task:
+      prologue:
+        commands:
+          - checkout
+          - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+      jobs:
+        - name: 'Build drkiq #1'
+          commands:
+            - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest || true'
+            - 'docker build -t $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest --cache-from=$DOCKER_USERNAME/dockerizing-ruby-drkiq:latest -f Dockerfile.production .'
+            - 'docker push $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest'
+        - name: 'Build Nginx #2'
+          commands:
+            - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-nginx:latest || true'
+            - 'docker build -t $DOCKER_USERNAME/dockerizing-ruby-nginx:latest --cache-from=$DOCKER_USERNAME/dockerizing-ruby-nginx:latest -f Dockerfile.nginx .'
+            - 'docker push $DOCKER_USERNAME/dockerizing-ruby-nginx:latest'
+      secrets:
+        - name: DOCKER_PASSWORD
+        - name: DOCKER_USERNAME
+    dependencies: []
+  - name: 'Test#2'
+    dependencies:
+      - 'Build#1'
+    task:
+      secrets:
+        - name: DOCKER_PASSWORD
+        - name: DOCKER_USERNAME
+      prologue:
+        commands:
+          - 'checkout '
+          - cp env-example .env
+          - cat docker-compose.test.yml | envsubst | tee docker-compose
+          - 'echo "${DOCKER_PASSWORD}" | docker login -u "${DOCKER_USERNAME}" --password-stdin'
+          - 'docker pull $DOCKER_USERNAME/dockerizing-ruby-drkiq:latest || true'
+          - 'docker-compose run drkiq rake db:reset'
+          - 'docker-compose run drkiq rake db:migrate'
+          - 'docker-compose run drkiq rake db:test:prepare'
+      jobs:
+        - name: 'Test #1'
+          commands:
+            - docker-compose run drkiq rails test
+
